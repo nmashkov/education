@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.core import average_age_by_position
+from core import average_age_by_position
 
 
 router = APIRouter(tags=["Стажировка"])

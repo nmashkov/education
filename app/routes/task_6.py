@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.core import DataGenerator
+from core import DataGenerator
 
 router = APIRouter(tags=["API для хранения файлов"])
 

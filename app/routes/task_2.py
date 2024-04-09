@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body
 
-from app.core import convert_arabic_to_roman, convert_roman_to_arabic
-from app.models import ConverterResponse
+from core import convert_arabic_to_roman, convert_roman_to_arabic
+from models import ConverterResponse
 
 
 router = APIRouter(tags=["Стажировка"])

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.models import BigJson
+from models import BigJson
 
 router = APIRouter(tags=["Стажировка"])
 
