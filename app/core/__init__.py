@@ -2,12 +2,59 @@ from abc import ABC, abstractmethod
 from io import StringIO
 
 
+def encode_digit(digit, one, five, nine):
+    """_summary_
+
+    Args:
+        digit (_type_): _description_
+        one (_type_): _description_
+        five (_type_): _description_
+        nine (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    return (
+        nine                     if digit == 9 else
+        five + one * (digit - 5) if digit >= 5 else
+        one + five               if digit == 4 else
+        one * digit              
+    )
+
+
 def convert_arabic_to_roman(number: int) -> str:
-    pass
+    """_summary_
+
+    Args:
+        number (int): _description_
+
+    Returns:
+        str: _description_
+    """
+    return (
+        'M' * (number // 1000) +
+        encode_digit((number // 100) % 10, 'C', 'D', 'CM') +
+        encode_digit((number //  10) % 10, 'X', 'L', 'XC') +
+        encode_digit( number         % 10, 'I', 'V', 'IX') 
+    )
 
 
 def convert_roman_to_arabic(number: str) -> int:
-    pass
+    """_summary_
+
+    Args:
+        number (str): _description_
+
+    Returns:
+        int: _description_
+    """
+    trans = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
+    values = [trans[r] for r in number]
+    result =  sum(val if val >= next_val else -val
+                  for val, next_val in zip(values[:-1], values[1:])
+                  ) + values[-1]
+    
+    return result
 
 
 def average_age_by_position(file):
