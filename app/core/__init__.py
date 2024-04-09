@@ -2,17 +2,17 @@ from abc import ABC, abstractmethod
 from io import StringIO
 
 
-def encode_digit(digit, one, five, nine):
-    """_summary_
+def encode_digit(digit: int, one: str, five: str, nine: str) -> str:
+    """Вспомогательная функция для конкатенации римских цифр.
 
     Args:
-        digit (_type_): _description_
-        one (_type_): _description_
-        five (_type_): _description_
-        nine (_type_): _description_
+        digit (_type_): число
+        one (_type_): первый римский символ
+        five (_type_): второй римский символ
+        nine (_type_): третий римский символ
 
     Returns:
-        _type_: _description_
+        _type_: часть римского числа
     """
     return (
         nine                     if digit == 9 else
@@ -23,13 +23,13 @@ def encode_digit(digit, one, five, nine):
 
 
 def convert_arabic_to_roman(number: int) -> str:
-    """_summary_
+    """Функция перевода арабских чисел в римские.
 
     Args:
-        number (int): _description_
+        number (int): арабское число
 
     Returns:
-        str: _description_
+        str: римское число
     """
     return (
         'M' * (number // 1000) +
@@ -40,13 +40,13 @@ def convert_arabic_to_roman(number: int) -> str:
 
 
 def convert_roman_to_arabic(number: str) -> int:
-    """_summary_
+    """Функция перевода римских чисел в арабские.
 
     Args:
-        number (str): _description_
+        number (str): римское число
 
     Returns:
-        int: _description_
+        int: арабское число
     """
     trans = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
     values = [trans[r] for r in number]
