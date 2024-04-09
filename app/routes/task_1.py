@@ -17,8 +17,11 @@ router = APIRouter(tags=["Стажировка"])
 """
 @router.post("/find_in_different_registers", description="Задание_1. Удаление дублей")
 async def find_in_different_registers(words: list[str]) -> list[str]:
-    """Описание."""
+    """Функция удаления дублей."""
 
-    result = []
+    formatted_words = words[0].lower().split(' ')  # форматирование строки
+    filtered_set = set(formatted_words)  # создание множества из списка
+    result = [s for s in filtered_set]  # оформление результата в список
+    # result = [s for s in set(words[0].lower().split(' '))]
 
     return result
