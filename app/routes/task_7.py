@@ -15,6 +15,7 @@ client_host: ContextVar[str | None] = ContextVar("client_host", default=None)
 [CURRENT_DATETIME] {file: line} LOG_LEVEL - | EXECUTION_TIME_SEC | HTTP_METHOD | URL | STATUS_CODE |
 [2023-12-15 00:00:00] {example:62} INFO | 12 | GET | http://localhost/example | 200 |
 
+# названия параметра для отображения номера строки в 7 задании: lineno
 
 Дописать класс CustomMiddleware.
 Добавить middleware в приложение (app).

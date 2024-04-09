@@ -29,12 +29,10 @@ router = APIRouter(tags=["Стажировка"])
 }
 
 Напишите валидатор в модуле app.models для класса BigJson.
-
 Используйте библиотеку pydantic.
-
 """
 @router.post("/check_json", description="Задание_3. Валидация json")
 async def check_json(body: BigJson) -> BigJson:
-    """ """
+    """Функция-валидатор для входящих данных."""
 
     return body

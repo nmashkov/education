@@ -1,6 +1,7 @@
-from typing import Union
+from typing import Union, List, Dict
+from datetime import datetime, date
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, model_validator, validator
 
 
 class ConverterRequest(BaseModel):
@@ -13,14 +14,44 @@ class ConverterResponse(BaseModel):
 
 
 class User(BaseModel):
+    """Модель User для BigJson."""
     name: str
-    age: int
-    adult: bool = None
+    age: int = Field(gt=0, lt=100)
+    adult: bool | None = None
+    message: str | None = None
+    
+    @model_validator(mode='after')
+    def validate_atts(self):
+        """Функция-валидатор для определения совершеннолетия."""
+        
+        self.adult = True if self.age >= 18 else False
+        
+        return self
+
+
+class Meta(BaseModel):
+    """Модель Meta для модели BigJson."""
+    last_modification: date
+    list_of_skills: List[str] = []
+    mapping: Dict[str, List[int | str]]
+    
+    class Config:
+        json_encoders = {
+            date: lambda v: v.strftime("%d/%m/%y")
+        }
+    
+    @validator("last_modification", pre=True)
+    def check_date(cls, value):
+        return datetime.strptime(
+            value,
+            "%d/%m/%Y"
+        ).date()
 
 
 class BigJson(BaseModel):
-    """Использует модель User."""
+    """Использует модели User и Meta."""
     user: User
+    meta: Meta
 
 
 # class UserRequest(BaseModel):
