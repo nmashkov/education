@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from io import StringIO
 
+from fastapi import UploadFile
 import pandas as pd
+
+from routes.exception import CustomException
 
 
 def encode_digit(digit: int, one: str, five: str, nine: str) -> str:
@@ -59,14 +62,20 @@ def convert_roman_to_arabic(number: str) -> int:
     return result
 
 
-def average_age_by_position(file) -> dict:
-    """"""
-    #
-    df = pd.read_csv(file)
+def average_age_by_position(file: UploadFile) -> dict:
+    """Функция расчёта среднего возраста сотрудников по должности."""
+
+    # try to get df from csv, check emptiness in file
+    try:
+        df = pd.read_csv(file)
+    except pd.errors.EmptyDataError:
+        raise CustomException('Empty file.', status_code=400)
     columns = list(df.columns)
     # chech columns
-    if not ('Имя' and 'Возраст' and 'Должность' in columns):
-        raise ValueError('Неправильные наименования колонок.')
+    for c in columns:
+        if c not in ('Имя', 'Возраст', 'Должность'):
+            raise CustomException(detail='Bad columns names.',
+                                  status_code=400)
     # define working df
     df = df[['Возраст', 'Должность']]
     # make mean aggregation for position 

@@ -1,8 +1,7 @@
-from typing import Dict
-
 from fastapi import APIRouter, UploadFile
 
 from core import average_age_by_position
+from .exception import CustomException
 
 
 router = APIRouter(tags=["Стажировка"])
@@ -40,15 +39,22 @@ router = APIRouter(tags=["Стажировка"])
 """
 @router.post("/get_average_age_by_position",
              description="Задание_4. Работа с pandas и csv")
-async def get_average_age_by_position(file: UploadFile):
+async def get_average_age_by_position(file: UploadFile) -> dict[str, float | int]:
     """Функция-обработчик файла-таблицы сотрудников.
     Обрабатывает получаемый файл в csv формате и выдаёт словарь,
     в котором указан средний возраст среди сотрудников по их должностями.
-    -> Dict[str, float | int]
     """
+    fct = file.content_type
     
-    # result = average_age_by_position(file.file)
-
-    # return result
-
-    return file.content_type
+    csv_types = ('text/x-csv', 'application/vnd.ms-excel',
+                 'application/csv', 'application/x-csv',
+                 'text/csv', 'text/comma-separated-values',
+                 'text/x-comma-separated-values', 'text/tab-separated-values')
+    
+    if fct not in csv_types:
+        raise CustomException(detail='Bad file type. Except csv type.',
+                              status_code=400)
+    
+    result = average_age_by_position(file.file)
+    
+    return result
