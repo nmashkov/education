@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from io import StringIO
 
+import pandas as pd
+
 
 def encode_digit(digit: int, one: str, five: str, nine: str) -> str:
     """Вспомогательная функция для конкатенации римских цифр.
@@ -57,8 +59,23 @@ def convert_roman_to_arabic(number: str) -> int:
     return result
 
 
-def average_age_by_position(file):
-    pass
+def average_age_by_position(file) -> dict:
+    """"""
+    #
+    df = pd.read_csv(file)
+    columns = list(df.columns)
+    # chech columns
+    if not ('Имя' and 'Возраст' and 'Должность' in columns):
+        raise ValueError('Неправильные наименования колонок.')
+    # define working df
+    df = df[['Возраст', 'Должность']]
+    # make mean aggregation for position 
+    df_mean_age_of_pos = df.groupby('Должность').mean().sort_index(ascending=True)
+    # make final dict
+    d = df_mean_age_of_pos.to_dict()
+    result = d['Возраст']
+    
+    return result
 
 
 """
