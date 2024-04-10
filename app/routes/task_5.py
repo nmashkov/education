@@ -43,7 +43,7 @@ async def upload_file(file: UploadFile = File(...)) -> int:
 
 @router.get("/download_file/{file_id}",
             description="Задание_5. API для хранения файлов")
-async def download_file(file_id: int):
+async def download_file(file_id: int) -> FileResponse:
     """Функция скачивания файлов по их id."""
     # get files table
     table = get_actual_file_table()
