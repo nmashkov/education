@@ -2,6 +2,7 @@ from fastapi import APIRouter, Response
 
 router = APIRouter(tags=["Стажировка"])
 
+
 """
 Задание_8. Декоратор - счётчик запросов.
 
@@ -9,12 +10,35 @@ router = APIRouter(tags=["Стажировка"])
 Оберните роут new_request() этим декоратором.
 Подумать, как хранить переменную с кол-вом сделаных запросов.
 """
-def count_requests():
-    pass
+def count_requests(func):
+    async def count_clicks():
+        # get current count
+        with open('./files/count_requests.txt', 'r') as f:
+            s = f.read()
+        # write new count
+        with open('./files/count_requests.txt', 'w') as f:
+            if s:
+                counts = int(s)
+                counts += 1
+                f.write(str(counts))
+            else:
+                counts = 0
+                f.write(str(counts))
+        #
+        return await func()
+    
+    return count_clicks
 
 
 @router.get("/new_request", description="Задание_8. Декоратор - счётчик запросов.")
+@count_requests
 async def new_request():
-    """Возвращает кол-во сделанных запросов."""
+    """Возвращает кол-во сделанных запросов.
+    Сохраняет данные в файл app/files/count_requests.txt
+    """
+    with open('./files/count_requests.txt', 'r') as f:
+            counts = int(f.read())
 
-    return Response()
+    cont = f'counts = {counts}'
+
+    return Response(content=cont, status_code=200)
