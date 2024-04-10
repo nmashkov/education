@@ -3,3 +3,4 @@ __pycache__
 .python-version
 .venv
 /app/files/test_pd.py
+/app/files/temp
