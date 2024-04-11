@@ -5,3 +5,4 @@ __pycache__
 /app/files/test_pd.py
 /app/files/test_str.py
 /app/files/temp
+/app/files/middleware.logs
