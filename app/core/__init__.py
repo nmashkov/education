@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from io import StringIO
 from typing import Annotated
+import json
 
 from fastapi import UploadFile, File
 import pandas as pd
-import json
 
 from routes.exception import CustomException
 
@@ -91,10 +91,14 @@ def average_age_by_position(file: UploadFile) -> dict:
 
 def get_actual_file_table() -> dict:
     """Получение таблицы файлов, находящиеся в проекте."""
-    with open('./files/file_table.txt', 'r') as f:
-        data = f.read()
-    
-    type_d = json.loads(data)
+    try:
+        with open('./files/file_table.txt', 'r') as f:
+            data = f.read()
+            type_d = json.loads(data)
+    except FileNotFoundError:
+        type_d = {}
+        with open('./files/file_table.txt', 'w') as f:
+            f.write("{}")
     
     return type_d
 

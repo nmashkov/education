@@ -2,7 +2,9 @@
 __pycache__
 .python-version
 .venv
+/app/files/temp
 /app/files/test_pd.py
 /app/files/test_str.py
-/app/files/temp
 /app/files/middleware.logs
+/app/files/file_table.txt
+/app/files/count_requests.txt
