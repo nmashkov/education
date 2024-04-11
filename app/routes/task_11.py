@@ -1,67 +1,81 @@
-from fastapi import HTTPException, APIRouter
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, APIRouter, Depends
 
-from core.db import database
-from models import UserCreate, UserReturn
+from core.db import SessionLocal, User
+from models import User as UserScheme
 
 
 router = APIRouter(tags=["Users"])
+
+
+# chech db session is active
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@router.get("/api/users", response_model=list[UserScheme])
+def get_users(db: Session = Depends(get_db)):
+    """Маршрут для получения списка пользователей."""
     
+    return db.query(User).all()
+  
+@router.get("/api/users/{id}", response_model=UserScheme)
+def get_user(id: int, db: Session = Depends(get_db)):
+    """Маршрут для получения информации опользователе."""
     
-# создание роута для создания юзеров
-@router.post("/users/", response_model=UserReturn)
-async def create_user(user: UserCreate):
-    query = ("INSERT INTO users (username, email) VALUES "
-             "(:username, :email) RETURNING id")
-    values = {"username": user.username, "email": user.email}
-    try:
-        user_id = await database.execute(query=query, values=values)
-        return {**user.model_dump(), "id": user_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to create user")
-
-
-# маршрут для получения информации о юзере по ID
-@router.get("/user/{user_id}", response_model=UserReturn)
-async def get_user(user_id: int):
-    query = "SELECT * FROM users WHERE id = :user_id"
-    values = {"user_id": user_id}
-    try:
-        result = await database.fetch_one(query=query, values=values)
-    except Exception as e:
-        raise HTTPException(status_code=500,
-                            detail="Failed to fetch user from database")
-    if result:
-        return UserReturn(username=result["username"], email=result["email"])
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
-
-
-# роут для обновления информации о юзере по ID
-@router.put("/user/{user_id}", response_model=UserReturn)
-async def update_user(user_id: int, user: UserCreate):
-    query = ("UPDATE users SET username = :username, "
-             "email = :email WHERE id = :user_id")
-    values = {"user_id": user_id,
-              "username": user.username,
-              "email": user.email}
-    try:
-        await database.execute(query=query, values=values)
-        return {**user.model_dump(), "id": user_id}
-    except Exception as e:
-        raise HTTPException(status_code=500,
-                            detail="Failed to update user in database")
-
-# роут для удаления информации о юзере по ID
-@router.delete("/user/{user_id}", response_model=dict)
-async def delete_user(user_id: int):
-    query = "DELETE FROM users WHERE id = :user_id RETURNING id"
-    values = {"user_id": user_id}
-    try:
-        deleted_rows = await database.execute(query=query, values=values)
-    except Exception as e:
-        raise HTTPException(status_code=500,
-                            detail="Failed to delete user from database")
-    if deleted_rows:
-        return {"message": "User deleted successfully"}
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+    # получаем пользователя по id
+    user = db.query(User).filter(User.id == id).first()
+    # если не найден, отправляем статусный код и сообщение об ошибке
+    if user is None:  
+        return HTTPException(status_code=404, detail="User not found")
+    # если пользователь найден, отправляем его
+    return user
+  
+  
+@router.post("/api/users", response_model=UserScheme)
+def create_user(data: UserScheme, db: Session = Depends(get_db)):
+    """Маршрут для создания пользователя."""
+    
+    user = User(**data.model_dump())
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+  
+@router.put("/api/users", response_model=UserScheme)
+def edit_user(data: UserScheme, db: Session = Depends(get_db)):
+    """Маршрут для редактирования пользователя."""
+    
+    # получаем пользователя по id
+    user_d = data.model_dump()
+    user = db.query(User).filter(User.id == data.id).first()
+    # если не найден, отправляем статусный код и сообщение об ошибке
+    if user is None:  
+        return HTTPException(status_code=404, detail="User not found")
+    # если пользователь найден, изменяем его данные
+    # и отправляем обратно клиенту
+    user.__dict__ = user_d
+    # for k, v in user_d:
+    #     user.__dict__[k] = v
+    db.commit() # сохраняем изменения 
+    db.refresh(user)
+    return user
+  
+  
+@router.delete("/api/users/{id}")
+def delete_user(id: int, db: Session = Depends(get_db)):
+    """Маршрут для удаление пользователя."""
+    
+    # получаем пользователя по id
+    user = db.query(User).filter(User.id == id).first()
+    # если не найден, отправляем статусный код и сообщение об ошибке
+    if user is None:  
+        return HTTPException(status_code=404, detail="User not found")
+    # если пользователь найден, удаляем его
+    db.delete(user)  # удаляем объект
+    db.commit()  # сохраняем изменения
+    return user

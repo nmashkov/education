@@ -1,11 +1,11 @@
-from typing import Union, List, Dict
+from typing import List, Dict
 from datetime import datetime, date
 
 from pydantic import BaseModel, Field, model_validator, validator
 
 
 class ConverterRequest(BaseModel):
-    number: Union[int, str]
+    number: int | str
 
 
 class ConverterResponse(BaseModel):
@@ -13,13 +13,57 @@ class ConverterResponse(BaseModel):
     roman: str
 
 
+# PYDANTIC MODELS (SCHEMES) FOR ITEM, USER AND POSITION
+class Item(BaseModel):
+    id: int
+    title: str
+    description: str | None = None
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class Position(BaseModel):
+    id: int
+    pos_name: str
+    description: str | None = None
+    employee_id: int
+
+    class Config:
+        from_attributes = True
+
+
 class User(BaseModel):
-    """Модель User для BigJson."""
+    id: int
     name: str
     age: int = Field(gt=0, lt=100)
     adult: bool | None = None
     message: str | None = None
-    
+    items: list[Item] | None = []
+    positions: list[Position] | None = []
+
+    class Config:
+        from_attributes = True
+        arbitrary_types_allowed = True
+
+    @model_validator(mode='after')
+    def validate_atts(self):
+        """Функция-валидатор для определения совершеннолетия."""
+        
+        self.adult = True if self.age >= 18 else False
+        
+        return self
+
+
+class UserTask3(BaseModel):
+    """Модель User для ПЗ 3."""
+    id: int
+    name: str
+    age: int = Field(gt=0, lt=100)
+    adult: bool | None = None
+    message: str | None = None
+
     @model_validator(mode='after')
     def validate_atts(self):
         """Функция-валидатор для определения совершеннолетия."""
@@ -50,33 +94,5 @@ class Meta(BaseModel):
 
 class BigJson(BaseModel):
     """Использует модели User и Meta."""
-    user: User
+    user: UserTask3
     meta: Meta
-
-
-# Модель User для валидации входных данных
-class UserCreate(BaseModel):
-    username: str
-    email: str
-
-
-# Модель User для валидации исходящих данных - чисто для демонстрации (обычно входная модель шире чем выходная, т.к. на вход мы просим, например, пароль, который обратно не возвращаем, и другое, что не обязательно возвращать) 
-class UserReturn(BaseModel):
-    username: str
-    email: str
-    id: int | None = None
-
-# class UserRequest(BaseModel):
-#     name: str
-#     message: str
-#
-#
-# class User(BaseModel):
-#     name: str
-#     age: str
-#     is_adult: bool
-#     message: str = None
-#
-#
-# class UserResponse(BaseModel):
-#     pass
