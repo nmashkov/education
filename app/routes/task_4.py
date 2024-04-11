@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile
 
 from core import average_age_by_position
-from .exception import CustomException
+from core.exception import CustomException
 
 
 router = APIRouter(tags=["Стажировка"])

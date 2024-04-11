@@ -12,7 +12,7 @@ router = APIRouter(tags=["Стажировка"])
 """
 def count_requests(func):
     async def count_clicks():
-        # get current count
+        # check file existing and get current count
         try:
             with open('./files/count_requests.txt', 'r') as f:
                 s = f.read()

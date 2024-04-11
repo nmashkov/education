@@ -6,7 +6,7 @@ import json
 from fastapi import UploadFile, File
 import pandas as pd
 
-from routes.exception import CustomException
+from core.exception import CustomException
 
 
 def encode_digit(digit: int, one: str, five: str, nine: str) -> str:
@@ -91,6 +91,7 @@ def average_age_by_position(file: UploadFile) -> dict:
 
 def get_actual_file_table() -> dict:
     """Получение таблицы файлов, находящиеся в проекте."""
+    # check file existing and get data
     try:
         with open('./files/file_table.txt', 'r') as f:
             data = f.read()

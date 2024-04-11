@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File
 from fastapi.responses import FileResponse
 
 from core import get_actual_file_table, save_file
-from routes.exception import CustomException
+from core.exception import CustomException
 
 
 router = APIRouter(tags=["API для хранения файлов"])
