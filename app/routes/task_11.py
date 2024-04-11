@@ -1,38 +1,17 @@
-import os
-from dotenv import load_dotenv
-
 from fastapi import HTTPException, APIRouter
-from databases import Database
 
-from app_init import app
+from core.db import database
 from models import UserCreate, UserReturn
 
 
 router = APIRouter(tags=["Users"])
-
-
-# env init
-load_dotenv('./files/.env')
-DB_PATH = os.environ.get("DB_PATH")
-DATABASE_URL = DB_PATH
-# db init
-database = Database(DATABASE_URL)
-
-
-# тут устанавливаем условия подключения к базе данных и отключения - можно использовать в роутах контекстный менеджер async with Database(...) as db: etc
-@app.on_event("startup")
-async def startup_database():
-    await database.connect()
-
-@app.on_event("shutdown")
-async def shutdown_database():
-    await database.disconnect()
     
     
 # создание роута для создания юзеров
 @router.post("/users/", response_model=UserReturn)
 async def create_user(user: UserCreate):
-    query = "INSERT INTO users (username, email) VALUES (:username, :email) RETURNING id"
+    query = ("INSERT INTO users (username, email) VALUES "
+             "(:username, :email) RETURNING id")
     values = {"username": user.username, "email": user.email}
     try:
         user_id = await database.execute(query=query, values=values)
@@ -49,7 +28,8 @@ async def get_user(user_id: int):
     try:
         result = await database.fetch_one(query=query, values=values)
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to fetch user from database")
+        raise HTTPException(status_code=500,
+                            detail="Failed to fetch user from database")
     if result:
         return UserReturn(username=result["username"], email=result["email"])
     else:
@@ -59,13 +39,17 @@ async def get_user(user_id: int):
 # роут для обновления информации о юзере по ID
 @router.put("/user/{user_id}", response_model=UserReturn)
 async def update_user(user_id: int, user: UserCreate):
-    query = "UPDATE users SET username = :username, email = :email WHERE id = :user_id"
-    values = {"user_id": user_id, "username": user.username, "email": user.email}
+    query = ("UPDATE users SET username = :username, "
+             "email = :email WHERE id = :user_id")
+    values = {"user_id": user_id,
+              "username": user.username,
+              "email": user.email}
     try:
         await database.execute(query=query, values=values)
         return {**user.model_dump(), "id": user_id}
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to update user in database")
+        raise HTTPException(status_code=500,
+                            detail="Failed to update user in database")
 
 # роут для удаления информации о юзере по ID
 @router.delete("/user/{user_id}", response_model=dict)
@@ -75,7 +59,8 @@ async def delete_user(user_id: int):
     try:
         deleted_rows = await database.execute(query=query, values=values)
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to delete user from database")
+        raise HTTPException(status_code=500,
+                            detail="Failed to delete user from database")
     if deleted_rows:
         return {"message": "User deleted successfully"}
     else:
