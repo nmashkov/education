@@ -1,0 +1,15 @@
+.idea
+.dockerignore
+.gitignore
+Dockerfile
+__pycache__
+.python-version
+.venv
+/app/files/temp
+/app/files/.env
+/app/files/test.py
+/app/files/test_pd.py
+/app/files/test_str.py
+/app/files/middleware.logs
+/app/files/file_table.txt
+/app/files/count_requests.txt
