@@ -21,23 +21,9 @@ b.	Добавить архивирование к post запросу, то ес
              description="Задание_5. API для хранения файлов")
 async def upload_file(file: UploadFile = File(...)) -> int:
     """Функция загрузки файлов."""
-    # get files table
-    table = get_actual_file_table()
-    # check file existing
-    fname = file.filename
-    id = None
-    if fname not in table.values():
-        if len(table) > 0:
-            last_id = list(table.keys())[-1]
-            id = int(last_id) + 1
-        else:
-            id = 0
-        table[id] = fname
-        save_file(table, file)
-    else:
-        raise CustomException(detail='Файл с таким именем уже есть на сервере',
-                              status_code=400)
-    # return id of uploaded file
+    
+    id = save_file(file)
+
     return id
 
 

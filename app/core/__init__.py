@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from io import StringIO
 from typing import Annotated
+import csv
 import json
+import yaml
 
 from fastapi import UploadFile, File
 import pandas as pd
@@ -104,16 +106,42 @@ def get_actual_file_table() -> dict:
     return type_d
 
 
-def save_file(table: dict, file: Annotated[bytes, File()]):
+def save_file(file: Annotated[bytes, File()], file_name: str = ''):
     """Сохранение файла в папку проекта и в таблице файлов."""
+    # get files table
+    table = get_actual_file_table()
+    # check file existing
+    if file_name:
+        fname = file_name
+    else:
+        fname = file.filename
+    id = None
+    if fname not in table.values():
+        if len(table) > 0:
+            last_id = list(table.keys())[-1]
+            id = int(last_id) + 1
+        else:
+            id = 0
+        table[id] = fname
+    else:
+        raise CustomException(detail='Файл с таким именем уже есть на сервере',
+                              status_code=400)
+    
     # save file in table
     with open('./files/file_table.txt', 'w') as f:
         json.dump(table, f)
     
     # save file in folder app/files/temp
-    file_location = f"./files/temp/{file.filename}"
+    if isinstance(file, StringIO):
+        data_to_save = file.getvalue()
+        data_to_save = data_to_save.encode()
+    else:
+        data_to_save = file.file.read()
+    file_location = f"./files/temp/{fname}"
     with open(file_location, "wb+") as file_object:
-        file_object.write(file.file.read())
+        file_object.write(data_to_save)
+    
+    return id
     
 
 
@@ -129,39 +157,80 @@ write, классов JSONWritter, CSVWritter, YAMLWritter.
 """
 class BaseWriter(ABC):
     """Абстрактный класс с методом write для генерации файла"""
-
     @abstractmethod
+    def write(self, data: list[list[int, str, float]]) -> StringIO:
+        pass
+
+
+class JSONWriter(BaseWriter):
+    """
+    Потомок BaseWriter с переопределением метода write
+    для генерации файла в json формате.
+    """
     def write(self, data: list[list[int, str, float]]) -> StringIO:
         """
         Записывает данные в строковый объект файла StringIO
         :param data: полученные данные
         :return: Объект StringIO с данными из data
         """
-        pass
+        matrix_size = len(data)
+        matrix_str = ''
+        for d in range(matrix_size):
+            for i in range(matrix_size):
+                if d == matrix_size-1 and i == matrix_size-1:
+                    matrix_str += f'{data[d][i]}'
+                elif i == matrix_size-1:
+                    matrix_str += f'{data[d][i]}\n'
+                else:
+                    matrix_str += f'{data[d][i]} '
+
+        lines = matrix_str.split('\n')
+        data = {int(k): v for k, v in enumerate(lines)}
+        json_string = json.dumps(data, indent=4)
+        res_json = StringIO(json_string)
+        
+        return res_json
 
 
-class JSONWriter(BaseWriter):
-    """Потомок BaseWriter с переопределением метода write для генерации файла в json формате"""
+class CSVWriter(BaseWriter):
+    """
+    Потомок BaseWriter с переопределением метода write
+    для генерации файла в csv формате.
+    """
+    def write(self, data: list[list[int, str, float]]) -> StringIO:
+        """
+        Записывает данные в строковый объект файла StringIO
+        :param data: полученные данные
+        :return: Объект StringIO с данными из data
+        """
+        res_csv = StringIO()
+        writeCSV = csv.writer(res_csv)
+        writeCSV.writerows(data)
+        
+        return res_csv
 
-    """Ваша реализация"""
 
-    pass
-
-
-class CSVWriter:
-    """Потомок BaseWriter с переопределением метода write для генерации файла в csv формате"""
-
-    """Ваша реализация"""
-
-    pass
-
-
-class YAMLWriter:
-    """Потомок BaseWriter с переопределением метода write для генерации файла в yaml формате"""
-
-    """Ваша реализация"""
-
-    pass
+class YAMLWriter(BaseWriter):
+    """
+    Потомок BaseWriter с переопределением метода write
+    для генерации файла в yaml формате.
+    """
+    def write(self, data: list[list[int, str, float]]) -> StringIO:
+        """
+        Записывает данные в строковый объект файла StringIO
+        :param data: полученные данные
+        :return: Объект StringIO с данными из data
+        """
+        json_file = JSONWriter().write(data)
+        json_file_str = json_file.getvalue()
+        #
+        python_dict=json.loads(json_file_str)
+        ymal_string=yaml.dump(python_dict)
+        #
+        res_yaml = StringIO(ymal_string)
+        
+        return res_yaml
+        
 
 
 class DataGenerator:
@@ -173,7 +242,8 @@ class DataGenerator:
         """Генерирует матрицу данных заданного размера."""
 
         data: list[list[int, str, float]] = []
-        """Ваша реализация"""
+        # generate zero matrix
+        data = [[0]*matrix_size for i in range(matrix_size)]
 
         self.data = data
 
@@ -184,7 +254,15 @@ class DataGenerator:
         :param path: Путь куда требуется сохранить файл
         :param writer: Одна из реализаций классов потомков от BaseWriter
         """
+        file_name = f'{path}.{writer}'
 
-        """Ваша реализация"""
-
-        pass
+        if writer == 'json':
+            file = JSONWriter().write(self.data)
+        elif writer == 'yaml':
+            file = YAMLWriter().write(self.data)
+        if writer == 'csv':
+            file = CSVWriter().write(self.data)
+            
+        id = save_file(file, file_name)
+        # id = None
+        self.file_id = id

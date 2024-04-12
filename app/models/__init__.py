@@ -96,3 +96,9 @@ class BigJson(BaseModel):
     """Использует модели User и Meta."""
     user: UserTask3
     meta: Meta
+
+
+class Task6(BaseModel):
+    """Model for Task6."""
+    file_type: str
+    matrix_size: int = Field(gt=3, lt=15)

@@ -44,6 +44,6 @@ async def new_request():
     with open('./files/count_requests.txt', 'r') as f:
             counts = int(f.read())
 
-    cont = f'counts = {counts}'
+    cont = f'{counts}'
 
     return Response(content=cont, status_code=200)
