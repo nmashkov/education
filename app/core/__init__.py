@@ -262,6 +262,10 @@ class DataGenerator:
             file = YAMLWriter().write(self.data)
         if writer == 'csv':
             file = CSVWriter().write(self.data)
+        else:
+            raise CustomException(detail='Wrong writer. '
+                                         'Choose json, csv or yaml.',
+                                  status_code=400)
             
         id = save_file(file, file_name)
         # id = None
